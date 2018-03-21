@@ -3,6 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Core;
+using Core.Metrics;
+using Moq;
 using NUnit.Framework;
 
 namespace Tests
@@ -12,14 +14,16 @@ namespace Tests
     {
         private SliceIndex _sliceIndex;
         private String _sliceFilePath;
+        private Mock<ISliceIndexMetricsRecorder> _metricsRecorder;
         
         [SetUp]
         public void SetUp()
         {
             _sliceFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "slice.idx");
+            _metricsRecorder = new Mock<ISliceIndexMetricsRecorder>();
             if (File.Exists(_sliceFilePath))
                 File.Delete(_sliceFilePath);
-            _sliceIndex = new SliceIndex(_sliceFilePath);
+            _sliceIndex = new SliceIndex(_sliceFilePath, _metricsRecorder.Object);
         }
 
         [TearDown]
@@ -76,11 +80,19 @@ namespace Tests
             
             _sliceIndex.Close();
             
-            _sliceIndex = new SliceIndex(_sliceFilePath);
+            _sliceIndex = new SliceIndex(_sliceFilePath, _metricsRecorder.Object);
             
             Assert.AreEqual(1, _sliceIndex.Get(key1));
             Assert.AreEqual(2, _sliceIndex.Get(key2));
             Assert.AreEqual(3, _sliceIndex.Get(key3));
+        }
+
+        [Test]
+        public void When_FileIsInvalid_Then_InvalidContentsAreErased()
+        {
+            // add a bad entry to the file, confirm that the bad entry is erased, confirm that the rest of the entries
+            // can be loaded
+            throw new NotImplementedException();
         }
     }
 }
