@@ -19,17 +19,17 @@ namespace Core.Metrics
             _putStopwatch = new Stopwatch();
         }
 
-        private MeterOptions GetMeter => new MeterOptions() { Name = "SliceIndex.Get.Meter", MeasurementUnit = Unit.Events};
-        private MeterOptions PutMeter => new MeterOptions() { Name = "SliceIndex.Put.Meter", MeasurementUnit = Unit.Events};
-        private HistogramOptions GetHistogram => new HistogramOptions() { Name = "SliceIndex.Get.Hist", MeasurementUnit = Unit.Events};
-        private HistogramOptions PutHistogram => new HistogramOptions() { Name = "SliceIndex.Put.Hist", MeasurementUnit = Unit.Events};
+        private MeterOptions GetMeter => new MeterOptions() { Name = $"{typeof(LogSliceIndex).Name}.Get.Meter", MeasurementUnit = Unit.Events};
+        private MeterOptions UpdateMeter => new MeterOptions() { Name = $"{typeof(LogSliceIndex).Name}.Update.Meter", MeasurementUnit = Unit.Events};
+        private HistogramOptions GetHistogram => new HistogramOptions() { Name = $"{typeof(LogSliceIndex).Name}.Get.Hist", MeasurementUnit = Unit.Events};
+        private HistogramOptions UpdateHistogram => new HistogramOptions() { Name = $"{typeof(LogSliceIndex).Name}.Update.Hist", MeasurementUnit = Unit.Events};
         
-        public void IndexGetStarted()
+        public void GetStarted()
         {
             _getStopwatch.Restart();
         }
 
-        public void IndexGetFinished()
+        public void GetFinished()
         {
             try
             {
@@ -43,18 +43,18 @@ namespace Core.Metrics
             }
         }
         
-        public void IndexPutStarted()
+        public void UpdatedStarted()
         {
             _putStopwatch.Restart();
         }
 
-        public void IndexPutFinished()
+        public void UpdateFinished()
         {
             try
             {
                 _putStopwatch.Stop();
-                _metrics.Measure.Meter.Mark(PutMeter);
-                _metrics.Measure.Histogram.Update(PutHistogram, _getStopwatch.ElapsedMilliseconds);
+                _metrics.Measure.Meter.Mark(UpdateMeter);
+                _metrics.Measure.Histogram.Update(UpdateHistogram, _getStopwatch.ElapsedMilliseconds);
             }
             catch (Exception)
             {

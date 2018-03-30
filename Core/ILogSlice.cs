@@ -14,17 +14,22 @@
          * Append a key-value pair to the log slice, returning the file seek position
          * at which the key starts
          */
-        long Append(byte[] key, byte[] value);
+        void Append(byte[] key, byte[] value);
 
         /**
          * Check if this slice contains a given key, returning
          * the seek position of the kvp if it does or null if not
          */
-        long? Contains(byte[] key);
+        bool Contains(byte[] key);
+
+        /*
+         * Remove a key and its associated value from the log
+         */
+        void Remove(byte[] key);
 
         /**
-         * Read the key value pair from the specfied seek position
+         * Get the value associated with the key
          */
-        (byte[] key, byte[] value) Read(long seekPosition);
+        byte[] Get(byte[] key);
     }
 }

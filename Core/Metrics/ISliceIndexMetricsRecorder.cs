@@ -5,9 +5,9 @@
      */
     public interface ISliceIndexMetricsRecorder
     {
-        void IndexGetStarted();
-        void IndexGetFinished();
-        void IndexPutStarted();
-        void IndexPutFinished();
+        void GetStarted();
+        void GetFinished();
+        void UpdatedStarted();
+        void UpdateFinished();
     }
 }
