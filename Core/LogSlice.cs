@@ -16,27 +16,23 @@ namespace Core
      */
     public class LogSlice : ILogSlice, IEnumerable<KeyValuePair<byte[], byte[]>>
     {
-        public string DirectoryPath { get; }
-        public string FileName { get; }
         public long Size { get; }
-        public string SliceFilePath => Path.Combine(DirectoryPath, FileName);
+        public string SliceFilePath { get; }
 
-        private ILogSliceIndex _index;
-        private FileStream _fileStream;
+        private readonly ILogSliceIndex _index;
+        private readonly FileStream _fileStream;
         private readonly byte[] _terminatorBytes = BitConverter.GetBytes('\0');
         private readonly ILogSliceMetricsRecorder _metricsRecorder;
         
-        public LogSlice(string directoryPath, string fileName, ILogSliceMetricsRecorder metricsRecorder)
+        public LogSlice(string sliceFilePath, ILogSliceIndex index, ILogSliceMetricsRecorder metricsRecorder)
         {
-            if (string.IsNullOrWhiteSpace(directoryPath))
-                throw new ArgumentNullException(nameof(directoryPath));
-            if (string.IsNullOrWhiteSpace(fileName))
-                throw new ArgumentNullException(nameof(fileName));
+            if (string.IsNullOrWhiteSpace(sliceFilePath))
+                throw new ArgumentNullException(nameof(sliceFilePath));
+            SliceFilePath = sliceFilePath;
             _metricsRecorder = metricsRecorder;
-
-            DirectoryPath = directoryPath;
-            FileName = fileName;
-            Initialise();
+            _index = index;
+            
+            _fileStream = new FileStream(SliceFilePath, FileMode.OpenOrCreate);
         }
 
 
@@ -124,16 +120,6 @@ namespace Core
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        private void Initialise()
-        {
-            if (!Directory.Exists(DirectoryPath))
-            {
-                Directory.CreateDirectory(DirectoryPath);
-            }
-            _fileStream = new FileStream(SliceFilePath, FileMode.OpenOrCreate);
-            _index = new LogSliceIndex($"{SliceFilePath}.idx", _metricsRecorder);
         }
     }
 }

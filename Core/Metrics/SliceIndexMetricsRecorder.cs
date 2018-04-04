@@ -11,6 +11,12 @@ namespace Core.Metrics
         private readonly IMetrics _metrics;
         private readonly Stopwatch _getStopwatch;
         private readonly Stopwatch _putStopwatch;
+        
+        private MeterOptions GetMeter => new MeterOptions() { Name = $"{typeof(LogSliceIndex).Name}.Get.Meter", MeasurementUnit = Unit.Events};
+        private MeterOptions UpdateMeter => new MeterOptions() { Name = $"{typeof(LogSliceIndex).Name}.Update.Meter", MeasurementUnit = Unit.Events};
+        private HistogramOptions GetHistogram => new HistogramOptions() { Name = $"{typeof(LogSliceIndex).Name}.Get.Hist", MeasurementUnit = Unit.Events};
+        private HistogramOptions UpdateHistogram => new HistogramOptions() { Name = $"{typeof(LogSliceIndex).Name}.Update.Hist", MeasurementUnit = Unit.Events};
+
 
         public SliceIndexMetricsRecorder(IMetrics metrics)
         {
@@ -19,10 +25,6 @@ namespace Core.Metrics
             _putStopwatch = new Stopwatch();
         }
 
-        private MeterOptions GetMeter => new MeterOptions() { Name = $"{typeof(LogSliceIndex).Name}.Get.Meter", MeasurementUnit = Unit.Events};
-        private MeterOptions UpdateMeter => new MeterOptions() { Name = $"{typeof(LogSliceIndex).Name}.Update.Meter", MeasurementUnit = Unit.Events};
-        private HistogramOptions GetHistogram => new HistogramOptions() { Name = $"{typeof(LogSliceIndex).Name}.Get.Hist", MeasurementUnit = Unit.Events};
-        private HistogramOptions UpdateHistogram => new HistogramOptions() { Name = $"{typeof(LogSliceIndex).Name}.Update.Hist", MeasurementUnit = Unit.Events};
         
         public void GetStarted()
         {

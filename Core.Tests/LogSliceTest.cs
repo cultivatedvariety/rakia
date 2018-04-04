@@ -16,26 +16,33 @@ namespace Tests
     public class LogSliceTest
     {
         private LogSlice _logSlice;
-        private string _directory;
-        private string _fileName;
+        private string _filePath;
+        private Mock<ILogSliceIndex> _index;
         private Mock<ILogSliceMetricsRecorder> _metricsRecorder;
+        private Dictionary<byte[], long> _indexEntries;
 
         [SetUp]
         public void SetUp()
         {
-            _directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            _fileName = "test.log";
+            _filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "test.log");
+            _indexEntries = new Dictionary<byte[], long>();
+            _index = new Mock<ILogSliceIndex>();
+            _index.Setup(idx => idx.UpdateIndex(It.IsAny<byte[]>(), It.IsAny<long>()))
+                .Callback<byte[], long>((k, v) => _indexEntries.AddOrUpdate(k, v));
+            _index.Setup(idx => idx.GetSeekPosition(It.IsAny<byte[]>()))
+                .Returns<byte[]>(key => _indexEntries.ContainsKey(key) ? _indexEntries[key] : (long?)null);
+            _index.Setup(idx => idx.RemoveFromIndex(It.IsAny<byte[]>()))
+                .Callback<byte[]>(k => _indexEntries.TryRemove(k));
             _metricsRecorder = new Mock<ILogSliceMetricsRecorder>();
-            _logSlice = new LogSlice(_directory, _fileName, _metricsRecorder.Object);
+            _logSlice = new LogSlice(_filePath, _index.Object, _metricsRecorder.Object);
         }
 
         [TearDown]
         public void TearDown()
         {
-            _logSlice?.Close();
-            var filePath = Path.Combine(_directory, _fileName);
-            if (File.Exists(filePath))
-                File.Delete(filePath);
+            _logSlice?.Close();            
+            if (File.Exists(_filePath))
+                File.Delete(_filePath);
         }
         
         [Test]
@@ -153,5 +160,28 @@ namespace Tests
 
         }
 
+    }
+    
+    public static class LogSliceTestExtensionMethods
+    {
+        public static void AddOrUpdate(this Dictionary<byte[], long> dict, byte[] key, long val)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict[key] = val;
+            }
+            else
+            {
+                dict.Add(key, val);
+            }
+        }
+
+        public static void TryRemove(this Dictionary<byte[], long> dict, byte[] key)
+        {
+            if (dict.ContainsKey(key))
+            {
+                dict.Remove(key);
+            }
+        }
     }
 }
