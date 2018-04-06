@@ -11,16 +11,13 @@ namespace Core.Metrics
         private readonly ISliceIndexMetricsRecorder _sliceIndexMetricsRecorder;
         private readonly Stopwatch _appendStopwatch;
         private readonly Stopwatch _contansStopwatch;
-        private readonly Stopwatch _removeStopwatch;
-        private readonly Stopwatch _updateStopwatch;
+        private readonly Stopwatch _getStopwatch;
         
         private MeterOptions AppendMeter => new MeterOptions() { Name = $"{typeof(LogSlice).Name}.Append.Meter", MeasurementUnit = Unit.Events};
         private MeterOptions ContainsMeter => new MeterOptions() { Name = $"{typeof(LogSlice).Name}.Contains.Meter", MeasurementUnit = Unit.Events};
-        private MeterOptions RemoveMeter => new MeterOptions() { Name = $"{typeof(LogSlice).Name}.Remove.Meter", MeasurementUnit = Unit.Events};
         private MeterOptions GetMeter => new MeterOptions() { Name = $"{typeof(LogSlice).Name}.Get.Meter", MeasurementUnit = Unit.Events};
         private HistogramOptions AppendHistogram => new HistogramOptions() { Name = $"{typeof(LogSlice).Name}.Append.Hist", MeasurementUnit = Unit.Events};
         private HistogramOptions ContainsHistogram => new HistogramOptions() { Name = $"{typeof(LogSlice).Name}.Contains.Hist", MeasurementUnit = Unit.Events};
-        private HistogramOptions RemoveHistogram => new HistogramOptions() { Name = $"{typeof(LogSlice).Name}.Remove.Hist", MeasurementUnit = Unit.Events};
         private HistogramOptions GetHistogram => new HistogramOptions() { Name = $"{typeof(LogSlice).Name}.Get.Hist", MeasurementUnit = Unit.Events};
 
 
@@ -30,8 +27,7 @@ namespace Core.Metrics
             _sliceIndexMetricsRecorder = sliceIndexMetricsRecorder;
             _appendStopwatch = new Stopwatch();
             _contansStopwatch = new Stopwatch();
-            _removeStopwatch = new Stopwatch();
-            _updateStopwatch = new Stopwatch();
+            _getStopwatch = new Stopwatch();
         }
 
 
@@ -55,27 +51,21 @@ namespace Core.Metrics
 
         public void ContainsFinished()
         {
-            throw new System.NotImplementedException();
-        }
-
-        public void RemoveStarted()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void RemoveFinished()
-        {
-            throw new System.NotImplementedException();
+            _contansStopwatch.Stop();
+            _metrics.Measure.Meter.Mark(ContainsMeter);
+            _metrics.Measure.Histogram.Update(ContainsHistogram, _contansStopwatch.ElapsedMilliseconds);
         }
 
         public void GetStarted()
         {
-            throw new System.NotImplementedException();
+            _getStopwatch.Start();
         }
 
         public void GetFinished()
         {
-            throw new System.NotImplementedException();
+            _getStopwatch.Stop();
+            _metrics.Measure.Meter.Mark(GetMeter);
+            _metrics.Measure.Histogram.Update(GetHistogram, _getStopwatch.ElapsedMilliseconds);
         }
     }
 }

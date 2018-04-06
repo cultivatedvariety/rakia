@@ -90,14 +90,6 @@ namespace Tests
         }
 
         [Test]
-        public void When_KeyIsRemoved_Then_XXXX()
-        {
-            // need a test around removed
-            throw new NotImplementedException();
-        }
-        
-
-        [Test]
         public void When_FileIsInvalid_Then_InvalidContentsAreErased()
         {
             // add a bad entry to the file, confirm that the bad entry is erased, confirm that the rest of the entries

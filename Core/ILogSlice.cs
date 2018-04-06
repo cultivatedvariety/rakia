@@ -17,19 +17,19 @@
         void Append(byte[] key, byte[] value);
 
         /**
-         * Check if this slice contains a given key, returning
-         * the seek position of the kvp if it does or null if not
-         */
-        bool Contains(byte[] key);
-
-        /*
-         * Remove a key and its associated value from the log
-         */
-        void Remove(byte[] key);
-
-        /**
          * Get the value associated with the key
          */
         byte[] Get(byte[] key);
+
+        /**
+        * Check if this slice contains a given key, returning
+        * the seek position of the kvp if it does or null if not
+        */
+        bool Contains(byte[] key);
+
+        /**
+         * Close the slice
+         */
+        void Close();
     }
 }

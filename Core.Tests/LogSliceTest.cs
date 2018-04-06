@@ -31,8 +31,6 @@ namespace Tests
                 .Callback<byte[], long>((k, v) => _indexEntries.AddOrUpdate(k, v));
             _index.Setup(idx => idx.GetSeekPosition(It.IsAny<byte[]>()))
                 .Returns<byte[]>(key => _indexEntries.ContainsKey(key) ? _indexEntries[key] : (long?)null);
-            _index.Setup(idx => idx.RemoveFromIndex(It.IsAny<byte[]>()))
-                .Callback<byte[]>(k => _indexEntries.TryRemove(k));
             _metricsRecorder = new Mock<ILogSliceMetricsRecorder>();
             _logSlice = new LogSlice(_filePath, _index.Object, _metricsRecorder.Object);
         }
@@ -93,15 +91,13 @@ namespace Tests
         }
 
         [Test]
-        public void When_KVPIsDeletedFromLog_Then_ContainsReturnsFalse()
+        public void When_KVPIsNotInLog_Then_GetReturnsNull()
         {
             byte[] key = Encoding.UTF8.GetBytes("key");
-            byte[] expectedValue = Encoding.UTF8.GetBytes("value");
 
-            _logSlice.Append(key, expectedValue);
-            _logSlice.Remove(key);
+            _logSlice.Get(key);
             
-            Assert.IsFalse(_logSlice.Contains(key));
+            Assert.IsNull(_logSlice.Get(key));
         }
         
         [Test]
@@ -142,22 +138,37 @@ namespace Tests
             Assert.AreEqual(kvpEnumerable.Current.Value, Encoding.UTF8.GetBytes("value2"));
         }
 
-        
-
         [Test]
-        public void When_KVPIsDeleted_Then_TombstoneValueIsWrittenToTheEndOfTheLog()
+        public void When_Append_Then_MetricsRecorded()
         {
-            byte[] key = Encoding.UTF8.GetBytes("key");
-
-            _logSlice.Append(key, Encoding.UTF8.GetBytes("value"));
-            _logSlice.Remove(key);
-
-            var enumerator = _logSlice.GetEnumerator();
-            enumerator.MoveNext(); // skip the first value
-            enumerator.MoveNext();
+            _metricsRecorder.Expect(mr => mr.AppendStarted());
+            _metricsRecorder.Expect(mr => mr.AppendFinished());
             
-            Assert.AreEqual(0, enumerator.Current.Value.Length);
-
+            _logSlice.Append(Encoding.UTF8.GetBytes("key"), Encoding.UTF8.GetBytes("val"));
+            
+            _metricsRecorder.Verify();
+        }
+        
+        [Test]
+        public void When_Contains_Then_MetricsRecorded()
+        {
+            _metricsRecorder.Expect(mr => mr.ContainsStarted());
+            _metricsRecorder.Expect(mr => mr.ContainsFinished());
+            
+            _logSlice.Contains(Encoding.UTF8.GetBytes("key"));
+            
+            _metricsRecorder.Verify();
+        }
+        
+        [Test]
+        public void When_Get_Then_MetricsRecorded()
+        {
+            _metricsRecorder.Expect(mr => mr.GetStarted());
+            _metricsRecorder.Expect(mr => mr.GetFinished());
+            
+            _logSlice.Get(Encoding.UTF8.GetBytes("key"));
+            
+            _metricsRecorder.Verify();
         }
 
     }

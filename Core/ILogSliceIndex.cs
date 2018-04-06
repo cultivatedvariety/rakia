@@ -6,7 +6,7 @@
     public interface ILogSliceIndex
     {
         /**
-         * Update the index with the kep and associated seek position
+         * Update the index with the key and associated seek position
          */
         void UpdateIndex(byte[] key, long seekPosition);
         
@@ -15,8 +15,7 @@
          */
         long? GetSeekPosition(byte[] key);
 
-        void RemoveFromIndex(byte[] key);
-
+        
         void Close();
 
     }
